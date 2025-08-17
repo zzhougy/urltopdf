@@ -10,11 +10,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 
 
 @Slf4j
@@ -47,7 +49,8 @@ public class Main {
         try (BrowserContext context = browser.newContext(contextOptions)) {
           // 创建新页面
           try (Page page = context.newPage()) {
-
+            int i = 0;
+            log.info("共" + articles.size() + "个");
             for (Article article : articles) {
               LocalDateTime dateTime = LocalDateTime.ofInstant(
                       java.time.Instant.ofEpochSecond(article.getCreate_time()),
@@ -55,7 +58,11 @@ public class Main {
               );
               String dateStr = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
               String title = StringUtils.sanitizeFilename(article.getTitle());
-              String outputPath = dateStr + "_" + title + ".pdf";
+
+
+              String desktopPath = FileUtils.getDesktopPath();
+
+              String outputPath = desktopPath + File.separator + "urltopdf" + File.separator + dateStr + "_" + title + ".pdf";
               log.info("开始处理文章：" + outputPath);
               // 导航到目标URL
               page.navigate(article.getLink());
@@ -101,10 +108,14 @@ public class Main {
               page.pdf(pdfOptions);
 
               log.info("PDF生成成功！保存路径: " + outputPath);
+              // 剩余个数
+              i++;
+              log.info("剩余" + (articles.size() - i) + "个");
               // 随机时间睡眠
-              long l = (long) (Math.random() * 5000 + 3000);
-              log.info("随机等待" + l + "ms");
-              Thread.sleep(l);
+              Random rand = new Random();
+              int randomNum = rand.nextInt(4000 - 2000 + 1) + 2000; // [2000, 4000]
+              log.info("随机等待" + randomNum + "ms");
+              Thread.sleep(randomNum);
             }
 
           }
@@ -114,6 +125,8 @@ public class Main {
       log.error("生成PDF时出错: " + e.getMessage());
       e.printStackTrace();
     }
+
+    log.info("PDF生成完毕！");
   }
 
   private static void createAndShowGUI() {
