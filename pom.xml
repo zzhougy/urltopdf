@@ -61,7 +61,7 @@
                 </executions>
             </plugin>
 
-            <!-- JPackage 插件生成安装包 -->
+            <!-- Start mac打包dmg-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -103,8 +103,9 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- End mac打包dmg-->
 
-            <!-- win生成exe文件-->
+            <!-- Start win打包exe-->
             <plugin>
                 <groupId>com.akathist.maven.plugins.launch4j</groupId>
                 <artifactId>launch4j-maven-plugin</artifactId>
@@ -127,6 +128,8 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- End win打包exe-->
+
 
         </plugins>
     </build>
