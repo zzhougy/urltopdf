@@ -72,9 +72,6 @@ public class Main {
               // 2. 滚动到底，触发懒加载
               page.evaluate("""
                 async () => {
-                    // 1. 先拿到正文容器（微信文章通常是 id="page-content" 或 js_content）
-                    const article = document.querySelector('#page-content, #js_content, [rich_content]');
-                    if (!article) return;
 
                     // 2. 计算每次滚动步长：取屏幕高度 * 0.8，重叠一点更保险
                     const step = window.innerHeight * 0.8;
