@@ -35,6 +35,9 @@ public class Main {
     // 读取json文件，并且映射到List<Article>
     List<Article> articles = JsonUtils.readJsonFile();
     List<Article> errorarticles = JsonUtils.readJsonFile();
+    // 未知异常
+    boolean isUnknownException = false;
+
 
     try (Playwright playwright = Playwright.create()) {
       // 配置浏览器选项
@@ -136,10 +139,14 @@ public class Main {
     } catch (Exception e) {
       log.error("生成PDF时出错: " + e.getMessage());
       e.printStackTrace();
+      isUnknownException = true;
     }
-
-    JsonUtils.writeJsonFile(errorarticles);
-    log.info("PDF生成完毕！出现{}个失败, 已记录到error文件", errorarticles.size());
+    if (!isUnknownException) {
+      JsonUtils.writeJsonFile(errorarticles);
+      log.info("PDF生成完毕！出现{}个失败, 已记录到error文件", errorarticles.size());
+    } else {
+      log.info("出现未知异常，请检查日志");
+    }
   }
 
   private static void createAndShowGUI() {
