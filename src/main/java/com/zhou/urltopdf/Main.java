@@ -34,6 +34,7 @@ public class Main {
 
     // 读取json文件，并且映射到List<Article>
     List<Article> articles = JsonUtils.readJsonFile();
+    List<Article> errorarticles = JsonUtils.readJsonFile();
 
     try (Playwright playwright = Playwright.create()) {
       // 配置浏览器选项
@@ -52,27 +53,33 @@ public class Main {
             int i = 0;
             log.info("共" + articles.size() + "个");
             for (Article article : articles) {
-              LocalDateTime dateTime = LocalDateTime.ofInstant(
-                      java.time.Instant.ofEpochSecond(article.getCreate_time()),
-                      ZoneId.systemDefault()
-              );
-              String dateStr = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
-              String title = StringUtils.sanitizeFilename(article.getTitle());
+
+              try {
+                LocalDateTime dateTime = LocalDateTime.ofInstant(
+                        java.time.Instant.ofEpochSecond(article.getCreate_time()),
+                        ZoneId.systemDefault()
+                );
+                String dateStr = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+                String title = StringUtils.sanitizeFilename(article.getTitle());
 
 
-              String desktopPath = FileUtils.getDesktopPath();
+                String desktopPath = FileUtils.getDesktopPath();
 
-              String outputPath = desktopPath + File.separator + "urltopdf" + File.separator + dateStr + "_" + title + ".pdf";
-              log.info("开始处理文章：" + outputPath);
-              // 导航到目标URL
-              page.navigate(article.getLink());
+                String outputPath = desktopPath + File.separator + "urltopdf" + File.separator + dateStr + "_" + title + ".pdf";
+                log.info("开始处理文章：" + outputPath);
 
-              // 等待页面完全加载
+                // 导航到目标URL
+                page.navigate(article.getLink());
+
+                // 等待页面完全加载
 //            page.waitForLoadState(LoadState.DOMCONTENTLOADED);
-              // 2. 滚动到底，触发懒加载
-              page.evaluate("""
+                // 2. 滚动到底，触发懒加载
+                page.evaluate("""
                 async () => {
-
+                    // 1. 先拿到正文容器（微信文章通常是 id="page-content" 或 js_content）
+                    const article = document.querySelector('#page-content, #js_content, [rich_content]');
+                    if (!article) return;
+                    
                     // 2. 计算每次滚动步长：取屏幕高度 * 0.8，重叠一点更保险
                     const step = window.innerHeight * 0.8;
                     let current = 0;
@@ -90,23 +97,32 @@ public class Main {
                 }
             """);
 
-              // 3. 等所有网络空闲（图片加载完）
+                // 3. 等所有网络空闲（图片加载完）
 //            page.waitForLoadState(LoadState.NETWORKIDLE);
 
-              // 配置PDF选项
-              Page.PdfOptions pdfOptions = new Page.PdfOptions()
-                      .setPath(Paths.get(outputPath))
-                      .setFormat("A4")
-                      .setPrintBackground(true)
+                // 配置PDF选项
+                Page.PdfOptions pdfOptions = new Page.PdfOptions()
+                        .setPath(Paths.get(outputPath))
+                        .setFormat("A4")
+                        .setPrintBackground(true)
 //                    .setMargin(new Margin(20, 20, 20, 20))
-                      ; // 设置页边距
+                        ; // 设置页边距
 
-              // 生成PDF文件
-              page.pdf(pdfOptions);
+                // 生成PDF文件
+                page.pdf(pdfOptions);
 
-              log.info("PDF生成成功！保存路径: " + outputPath);
+                log.info("PDF生成成功！保存路径: " + outputPath);
+              } catch (Exception e) {
+                log.error("出现异常，跳过。生成 {} 时出错: {}", article.getTitle(), e.getMessage());
+                e.printStackTrace();
+                errorarticles.add(article);
+              }
+
+
+
               // 剩余个数
               i++;
+              log.info("已完成" + i + "个");
               log.info("剩余" + (articles.size() - i) + "个");
               // 随机时间睡眠
               Random rand = new Random();
@@ -114,7 +130,6 @@ public class Main {
               log.info("随机等待" + randomNum + "ms");
               Thread.sleep(randomNum);
             }
-
           }
         }
       }
@@ -123,7 +138,8 @@ public class Main {
       e.printStackTrace();
     }
 
-    log.info("PDF生成完毕！");
+    JsonUtils.writeJsonFile(errorarticles);
+    log.info("PDF生成完毕！出现{}个失败, 已记录到error文件", errorarticles.size());
   }
 
   private static void createAndShowGUI() {
