@@ -115,6 +115,24 @@ public class Main {
                 page.pdf(pdfOptions);
 
                 log.info("PDF生成成功！保存路径: " + outputPath);
+                
+                try {
+                    // 生成PDF后进行压缩
+                    File compressedPdf = new File(outputPath.replace(".pdf", "_compressed.pdf"));
+                    PDFCompressor.compressPdf(new File(outputPath), compressedPdf);
+                    
+                    // 用压缩后的文件替换原文件
+                    if (compressedPdf.exists() && compressedPdf.length() > 0) {
+                        java.nio.file.Files.move(
+                                compressedPdf.toPath(), 
+                                new File(outputPath).toPath(), 
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                        );
+                        log.info("PDF压缩成功并替换原文件: " + outputPath);
+                    }
+                } catch (Exception e) {
+                    log.error("PDF压缩失败，保留原始文件: {}", e.getMessage());
+                }
               } catch (Exception e) {
                 log.error("出现异常，跳过。生成 {} 时出错: {}", article.getTitle(), e.getMessage());
                 e.printStackTrace();
