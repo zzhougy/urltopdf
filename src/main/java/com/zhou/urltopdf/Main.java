@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 public class Main {
 
   private static JTextArea logTextArea;
+  // 添加日志行数计数器和限制
+  private static int logLineCount = 0;
+  private static final int MAX_LOG_LINES = 5000; // 设置最大日志行数
 
   public static void main(String[] args) {
     // 设置允许图形界面，解决java.awt.HeadlessException
@@ -207,7 +210,17 @@ public class Main {
       @Override
       protected void append(ILoggingEvent eventObject) {
         String logMessage = encoder.getLayout().doLayout(eventObject);
-        SwingUtilities.invokeLater(() -> logTextArea.append(logMessage));
+        SwingUtilities.invokeLater(() -> {
+          // 检查是否需要清空日志
+          if (logLineCount >= MAX_LOG_LINES) {
+            logTextArea.setText(""); // 清空日志
+            logLineCount = 0;
+            log.info("日志已清空，达到最大行数限制");
+          }
+          
+          logTextArea.append(logMessage);
+          logLineCount++; // 增加行数计数
+        });
       }
     };
     swingAppender.setContext(rootLogger.getLoggerContext());
