@@ -1,25 +1,28 @@
 # urltopdf
 
-一个将 url网页内容 转换为 PDF 文件的 Java 应用程序。
+一个将 url网页内容 转换为 PDF文件 的 Java 应用程序。
 
 ## 项目简介
 
-urltopdf 是一个轻量级的 Java 应用程序，专门用于将 url网页内容 转换为 PDF 文件。该工具可以批量处理文章链接，自动滚动页面以触发懒加载内容，并生成高质量的 PDF 文档。
+urltopdf 是一个轻量级的 Java 应用程序，专门用于将 url网页内容 转换为 PDF文件。
 
 ## 功能特点
 
-- 批量处理url链接
+- 批量处理url网页链接
 - 自动滚动页面以确保所有内容加载完成
-- 生成高质量 A4 格式 PDF 文件
+- 生成高质量 A4 格式 PDF文件
 - 图形界面显示实时处理日志
 - 支持打包为 Windows EXE 可执行文件，便于在 Windows 系统上直接运行
 - 支持打包为 macOS DMG 安装包，便于在 macOS 系统上直接运行
+- PDF压缩，减少文件体积
+- 该工具以 微信公众号文章链接 生成 PDF文件 举例
 
 ## 技术栈
 
 - Java 17
 - Maven
 - Playwright Java (网页渲染和PDF生成)
+- PDFBox
 
 ## 安装与构建
 
@@ -69,7 +72,7 @@ DMG 文件会位于 [target](file:///D:/code/urltopdf/urltopdf/target) 目录下
 
 ### 准备数据文件
 
-在桌面创建一个名为 `urltopdf` 的文件夹，并在其中放置 [微信公众号文章.json](file:///D:/code/urltopdf/urltopdf/src/main/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7%E6%96%87%E7%AB%A0.json) 的 JSON 文件，文件格式如下：
+在桌面创建一个名为 `urltopdf` 的文件夹，并在其中放置 [微信公众号文章.json] 的 JSON 文件，文件格式如下：
 
 ```json
 [
