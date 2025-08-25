@@ -51,30 +51,35 @@ public class PDFCompressor {
     long originalSize = inputFile.length();
 
     try (PDDocument document = PDDocument.load(inputFile)) {
-      // 1. 移除不必要的元数据
-      removeUnnecessaryMetadata(document);
+      if (CompressionLevel.CUSTOM != level) {
+        // 1. 移除不必要的元数据
+        removeUnnecessaryMetadata(document);
 
-      // 2. 优化图片（最有效的压缩策略）
-      optimizeImages(document, level);
+        // 2. 优化图片（最有效的压缩策略）
+        optimizeImages(document, level);
 
-      // 3. 优化字体
-      optimizeFonts(document, level);
+        // 3. 优化字体
+        optimizeFonts(document, level);
 
-      // 4. 优化内容流
-      optimizeContentStreams(document);
+        // 4. 优化内容流
+        optimizeContentStreams(document);
 
-      // 5. 合并重复对象
-      optimizeDuplicateObjects(document);
+        // 5. 合并重复对象
+        optimizeDuplicateObjects(document);
 
-      // 6. 优化页面内容
-      optimizePageContents(document);
+        // 6. 优化页面内容
+        optimizePageContents(document);
 
-      // 7. 移除表单
-      removeForms(document);
+        // 7. 移除表单
+        removeForms(document);
 
-      // 8. 对于超极限压缩，尝试额外的优化
-      if (level == CompressionLevel.ULTRA_EXTREME) {
-        ultraOptimizePdf(document);
+        // 8. 对于超极限压缩，尝试额外的优化
+        if (level == CompressionLevel.ULTRA_EXTREME) {
+          ultraOptimizePdf(document);
+        }
+      } else {
+        // 优化图片（最有效的压缩策略）
+        optimizeImages(document, level);
       }
 
       // 9. 保存文档时强制压缩
@@ -101,7 +106,7 @@ public class PDFCompressor {
    * @throws IOException IO异常
    */
   public static void compressPdf(File inputFile, File outputFile) throws IOException {
-    compressPdf(inputFile, outputFile, CompressionLevel.MEDIUM);
+    compressPdf(inputFile, outputFile, CompressionLevel.CUSTOM);
   }
 
   /**
@@ -122,7 +127,7 @@ public class PDFCompressor {
 
       // 保留标题、主题和作者，这些可能对用户有用
     } catch (Exception e) {
-      log.error("移除元数据时出错: " + e.getMessage());
+      log.error("移除元数据时出错: ", e);
     }
   }
 
@@ -169,6 +174,13 @@ public class PDFCompressor {
           forceWebOptimizedFormat = true;
           binarizeMonochrome = true;
           useJPEG2000 = true;
+          break;
+        case CUSTOM:
+          quality = 0.15f; // 超极限压缩的图片质量
+          maxDPI = 72;     // PDF默认DPI
+          downsampleAllImages = true;
+          forceWebOptimizedFormat = true;
+          binarizeMonochrome = true;
           break;
       }
 
@@ -240,7 +252,7 @@ public class PDFCompressor {
         }
       }
     } catch (Exception e) {
-      log.error("优化图片时出错: " + e.getMessage());
+      log.error("优化图片时出错: ", e);
     }
   }
 
@@ -255,7 +267,7 @@ public class PDFCompressor {
         removeUnusedFonts(document);
       }
     } catch (Exception e) {
-      log.error("优化字体时出错: " + e.getMessage());
+      log.error("优化字体时出错: ", e);
     }
   }
 
@@ -305,14 +317,14 @@ public class PDFCompressor {
           engine.processPage(page);
         } catch (Exception e) {
           // 忽略页面处理错误，继续处理其他页面
-          log.debug("处理页面字体时出错: " + e.getMessage());
+          log.debug("处理页面字体时出错: ", e);
         }
       }
 
       // 这里可以添加移除未使用字体的代码
       // 注意：完整的字体移除需要更复杂的实现，因为需要考虑字体的引用关系
     } catch (Exception e) {
-      log.error("移除未使用字体时出错: " + e.getMessage());
+      log.error("移除未使用字体时出错: ", e);
     }
   }
 
@@ -324,7 +336,7 @@ public class PDFCompressor {
       // PDFBox会自动优化内容流，这里我们可以添加额外的优化
       document.saveIncremental(new java.io.ByteArrayOutputStream());
     } catch (Exception e) {
-      log.error("优化内容流时出错: " + e.getMessage());
+      log.error("优化内容流时出错: ", e);
     }
   }
 
@@ -337,7 +349,7 @@ public class PDFCompressor {
       // 这里可以添加更复杂的重复对象检测和合并
       document.saveIncremental(new java.io.ByteArrayOutputStream());
     } catch (Exception e) {
-      log.error("优化重复对象时出错: " + e.getMessage());
+      log.error("优化重复对象时出错: ", e);
     }
   }
 
@@ -361,7 +373,7 @@ public class PDFCompressor {
       // 5. 尝试重新保存为更紧凑的格式
       document.saveIncremental(new java.io.ByteArrayOutputStream());
     } catch (Exception e) {
-      log.error("超极限优化PDF时出错: " + e.getMessage());
+      log.error("超极限优化PDF时出错: ", e);
     }
   }
 
@@ -374,7 +386,7 @@ public class PDFCompressor {
         page.setAnnotations(null);
       }
     } catch (Exception e) {
-      log.error("移除注释时出错: " + e.getMessage());
+      log.error("移除注释时出错: ", e);
     }
   }
 
@@ -385,7 +397,7 @@ public class PDFCompressor {
     try {
       // 已经在removeForms中移除了表单，这里可以添加其他交互元素的移除
     } catch (Exception e) {
-      log.error("移除交互元素时出错: " + e.getMessage());
+      log.error("移除交互元素时出错: ", e);
     }
   }
 
@@ -399,7 +411,7 @@ public class PDFCompressor {
         catalog.setDocumentOutline(null);
       }
     } catch (Exception e) {
-      log.error("移除书签时出错: " + e.getMessage());
+      log.error("移除书签时出错: ", e);
     }
   }
 
@@ -413,7 +425,7 @@ public class PDFCompressor {
         catalog.setOCProperties(null);
       }
     } catch (Exception e) {
-      log.error("移除可选内容组时出错: " + e.getMessage());
+      log.error("移除可选内容组时出错: ", e);
     }
   }
 
@@ -424,7 +436,7 @@ public class PDFCompressor {
     try {
       // 这里可以添加页面内容的优化，如移除空白页面、合并相似页面等
     } catch (Exception e) {
-      log.error("优化页面内容时出错: " + e.getMessage());
+      log.error("优化页面内容时出错: ", e);
     }
   }
 
@@ -439,7 +451,7 @@ public class PDFCompressor {
         catalog.setAcroForm(null);
       }
     } catch (Exception e) {
-      log.error("移除表单时出错: " + e.getMessage());
+      log.error("移除表单时出错: ", e);
     }
   }
 
@@ -452,7 +464,7 @@ public class PDFCompressor {
       ImageIO.write(image, format, baos);
       return baos.toByteArray();
     } catch (IOException e) {
-      log.error("转换图像时出错: " + e.getMessage());
+      log.error("转换图像时出错: ", e);
       return null;
     }
   }
@@ -480,7 +492,7 @@ public class PDFCompressor {
 
       return baos.toByteArray();
     } catch (Exception e) {
-      log.error("转换图像时出错: " + e.getMessage());
+      log.error("转换图像时出错: ", e);
       // 如果设置质量失败，回退到普通转换
       return imageToByteArray(image, format);
     }
@@ -652,7 +664,7 @@ public class PDFCompressor {
         String outputPath = file.getAbsolutePath().replace(".pdf", "_compressed.pdf");
         compressPdf(file, new File(outputPath), level);
       } catch (Exception e) {
-        log.error("压缩文件" + file.getName() + "时出错: " + e.getMessage());
+        log.error("压缩文件{}时出错: ", file.getName(), e);
       }
     }
 

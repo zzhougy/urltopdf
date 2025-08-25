@@ -15,8 +15,10 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -34,7 +36,12 @@ public class Main {
 
     // 读取json文件，并且映射到List<Article>
     List<Article> articles = JsonUtils.readJsonFile();
-    List<Article> errorarticles = JsonUtils.readJsonFile();
+    if (articles == null || articles.isEmpty()) {
+      log.error("没有可用数据，请检查json文件");
+      return;
+    }
+    List<Article> errorArticles = new ArrayList<>();
+    List<Article> compressErrorArticles = new ArrayList<>();
     // 未知异常
     boolean isUnknownException = false;
 
@@ -131,12 +138,12 @@ public class Main {
                         log.info("PDF压缩成功并替换原文件: " + outputPath);
                     }
                 } catch (Exception e) {
-                    log.error("PDF压缩失败，保留原始文件: {}", e.getMessage());
+                    log.error("PDF压缩失败，保留原始文件。", e);
+                    compressErrorArticles.add(article);
                 }
               } catch (Exception e) {
-                log.error("出现异常，跳过。生成 {} 时出错: {}", article.getTitle(), e.getMessage());
-                e.printStackTrace();
-                errorarticles.add(article);
+                log.error("出现异常，跳过。生成 {} 时出错。", article.getTitle(), e);
+                errorArticles.add(article);
               }
 
 
@@ -155,16 +162,24 @@ public class Main {
         }
       }
     } catch (Exception e) {
-      log.error("生成PDF时出错: " + e.getMessage());
-      e.printStackTrace();
+      log.error("生成PDF时出错: ", e);
       isUnknownException = true;
     }
+
     if (!isUnknownException) {
-      JsonUtils.writeJsonFile(errorarticles);
-      log.info("PDF生成完毕！出现{}个失败, 已记录到error文件", errorarticles.size());
+      log.info("====PDF生成完毕！");
+      if ( !errorArticles.isEmpty()) {
+        JsonUtils.writeJsonFile(errorArticles);
+        log.error("====出现{}个失败，已记录到{}文件", errorArticles.size(), FileUtils.getDesktopPath() + FileUtils.ERROR_JSON_FILE_PATH);
+      }
+      if (!compressErrorArticles.isEmpty()) {
+        String collect = compressErrorArticles.stream().map(Article::getTitle).collect(Collectors.joining("\n"));
+        log.error("====出现{}个pdf压缩失败。\n [{}]", compressErrorArticles.size(), collect);
+      }
     } else {
-      log.info("出现未知异常，请检查日志");
+      log.info("出现未知异常，已中断，请检查日志");
     }
+
   }
 
   private static void createAndShowGUI() {
