@@ -185,8 +185,8 @@ public class PDFCompressor {
            * binarizeMonochrome = true;
            */
 
-          quality = 0.3f;
-          maxDPI = 100;
+          quality = 0.5f;
+          maxDPI = 150;
           downsampleAllImages = true;
           forceWebOptimizedFormat = true;
           binarizeMonochrome = true;

@@ -165,7 +165,6 @@ public class Main {
   }
 
   private static void extracted() {
-    List<String> compressErrorArticles = new ArrayList<>();
     // 弹出对话框让用户决定是否进行压缩处理
     SwingUtilities.invokeLater(() -> {
       int option = JOptionPane.showConfirmDialog(
@@ -177,64 +176,68 @@ public class Main {
       );
 
       if (option == JOptionPane.YES_OPTION) {
-        log.info("用户选择进行PDF压缩处理");
+        // 在新线程中执行压缩操作，避免阻塞UI线程。否则无法实时看到log打印
+        new Thread(() -> {
+          List<String> compressErrorArticles = new ArrayList<>();
+          log.info("用户选择进行PDF压缩处理");
 
-        try {
-          String folderPath = FileUtils.getDesktopPath() + File.separator + "urltopdf";
-          File folder = new File(folderPath);
-          if (!folder.exists() || !folder.isDirectory()) {
-            log.error("文件夹不存在: " + folderPath);
-            return;
-          }
-
-          File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-          if (files == null || files.length == 0) {
-            log.info("文件夹中没有PDF文件: " + folderPath);
-            return;
-          }
-
-          log.info("开始批量压缩PDF文件，共" + files.length + "个文件");
-
-          // 创建compressed目录（如果不存在）
-          String compressedDirPath = folderPath + File.separator + "compressed";
-          File compressedDir = new File(compressedDirPath);
-          if (!compressedDir.exists()) {
-            if (!compressedDir.mkdirs()) {
-              log.error("无法创建compressed目录: " + compressedDirPath);
+          try {
+            String folderPath = FileUtils.getDesktopPath() + File.separator + "urltopdf";
+            File folder = new File(folderPath);
+            if (!folder.exists() || !folder.isDirectory()) {
+              log.error("文件夹不存在: " + folderPath);
               return;
             }
-          }
 
-          for (File file : files) {
-            try {
-              String compressedFilePath = compressedDirPath + File.separator + file.getName();
-              File compressedPdf = new File(compressedFilePath);
+            File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+            if (files == null || files.length == 0) {
+              log.info("文件夹中没有PDF文件: " + folderPath);
+              return;
+            }
 
-              // 执行压缩
-              PDFCompressor.compressPdf(file, compressedPdf);
+            log.info("开始批量压缩PDF文件，共" + files.length + "个文件");
 
-              // 检查压缩是否成功
-              if (compressedPdf.exists() && compressedPdf.length() > 0) {
-                log.info("PDF压缩成功: " + file.getPath());
-              } else {
-                log.error("PDF压缩失败或生成的文件为空: " + file.getPath());
+            // 创建compressed目录（如果不存在）
+            String compressedDirPath = folderPath + File.separator + "compressed";
+            File compressedDir = new File(compressedDirPath);
+            if (!compressedDir.exists()) {
+              if (!compressedDir.mkdirs()) {
+                log.error("无法创建compressed目录: " + compressedDirPath);
+                return;
+              }
+            }
+
+            for (File file : files) {
+              try {
+                String compressedFilePath = compressedDirPath + File.separator + file.getName();
+                File compressedPdf = new File(compressedFilePath);
+
+                // 执行压缩
+                PDFCompressor.compressPdf(file, compressedPdf);
+
+                // 检查压缩是否成功
+                if (compressedPdf.exists() && compressedPdf.length() > 0) {
+                  log.info("PDF压缩成功: " + file.getPath());
+                } else {
+                  log.error("PDF压缩失败或生成的文件为空: " + file.getPath());
+                  compressErrorArticles.add(file.getPath());
+                }
+              } catch (Exception e) {
+                log.error("PDF压缩失败。", e);
                 compressErrorArticles.add(file.getPath());
               }
-            } catch (Exception e) {
-              log.error("PDF压缩失败。", e);
-              compressErrorArticles.add(file.getPath());
             }
-          }
-          log.info("批量压缩完成");
-          if (!compressErrorArticles.isEmpty()) {
-            String collect = String.join("\n", compressErrorArticles);
-            log.error("====出现{}个pdf压缩失败。如下：\n [{}]", compressErrorArticles.size(), collect);
+            log.info("批量压缩完成");
+            if (!compressErrorArticles.isEmpty()) {
+              String collect = String.join("\n", compressErrorArticles);
+              log.error("====出现{}个pdf压缩失败。如下：\n [{}]", compressErrorArticles.size(), collect);
+            }
+
+          } catch (Exception e) {
+            log.error("PDF压缩过程中发生错误，压缩中断。", e);
           }
 
-        } catch (Exception e) {
-          log.error("PDF压缩过程中发生错误，压缩中断。", e);
-        }
-
+        }).start();
       } else {
         log.info("用户选择不进行PDF压缩处理");
       }
