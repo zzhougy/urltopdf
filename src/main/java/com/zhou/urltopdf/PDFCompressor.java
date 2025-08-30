@@ -176,11 +176,16 @@ public class PDFCompressor {
           useJPEG2000 = true;
           break;
         case CUSTOM:
-          quality = 0.15f; // 超极限压缩的图片质量
-          maxDPI = 72;     // PDF默认DPI
-          downsampleAllImages = true;
+          /**
+           * 这种能极限压缩大小，但是包含文字的图片可能看不清
+           * quality = 0.15f; // 超极限压缩的图片质量
+           * maxDPI = 72;     // PDF默认DPI
+           * downsampleAllImages = true;
+           * forceWebOptimizedFormat = true;
+           * binarizeMonochrome = true;
+           */
+
           forceWebOptimizedFormat = true;
-          binarizeMonochrome = true;
           break;
       }
 
