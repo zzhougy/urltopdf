@@ -111,7 +111,7 @@
 
                                 <!-- 可选元数据 -->
                                 <argument>--app-version</argument>
-                                <argument>1.0</argument>
+                                <argument>1.1</argument>
                                 <argument>--vendor</argument>
                                 <argument>urltopdf</argument>
                             </arguments>
