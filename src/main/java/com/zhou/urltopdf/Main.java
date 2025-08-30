@@ -63,6 +63,7 @@ public class Main {
           try (Page page = context.newPage()) {
             int i = 0;
             log.info("共" + articles.size() + "个");
+            long startTime = System.currentTimeMillis(); // 记录开始时间
             for (Article article : articles) {
 
               try {
@@ -133,6 +134,12 @@ public class Main {
 
               // 剩余个数
               i++;
+              long currentTime = System.currentTimeMillis();
+              long elapsedTime = currentTime - startTime; // 计算耗时
+              long seconds = elapsedTime / 1000;
+              long minutes = seconds / 60;
+              seconds = seconds % 60;
+              log.info("当前耗时: " + minutes + "分" + seconds + "秒");
               log.info("已完成" + i + "个");
               log.info("剩余" + (articles.size() - i) + "个");
               // 随机时间睡眠
