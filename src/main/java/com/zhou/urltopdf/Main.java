@@ -137,7 +137,7 @@ public class Main {
               log.info("剩余" + (articles.size() - i) + "个");
               // 随机时间睡眠
               Random rand = new Random();
-              int randomNum = rand.nextInt(4000 - 2000 + 1) + 2000; // [2000, 4000]
+              int randomNum = rand.nextInt(3000 - 1000 + 1) + 1000; // [1000, 3000]
               log.info("随机等待" + randomNum + "ms");
               Thread.sleep(randomNum);
             }
