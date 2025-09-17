@@ -88,16 +88,26 @@ public class Main {
                 // 2. 滚动到底，触发懒加载
                 page.evaluate("""
                 async () => {
-                    // 1. 先拿到正文容器（微信文章通常是 id="page-content" 或 js_content）
-                    const article = document.querySelector('#page-content, #js_content, [rich_content]');
-                    if (!article) return;
+                    // 适配任何网站的通用滚动逻辑
+                    // 1. 获取整个文档的高度
+                    const body = document.body;
+                    const html = document.documentElement;
+                    
+                    // 计算页面最大高度
+                    const pageHeight = Math.max(
+                        body.scrollHeight,
+                        body.offsetHeight,
+                        html.clientHeight,
+                        html.scrollHeight,
+                        html.offsetHeight
+                    );
                     
                     // 2. 计算每次滚动步长：取屏幕高度 * 0.8，重叠一点更保险
                     const step = window.innerHeight * 0.8;
                     let current = 0;
 
                     // 3. 逐段向下滚动
-                    while (current < article.scrollHeight) {
+                    while (current < pageHeight) {
                         window.scrollTo(0, current);
                         // 等待 200 ms 让浏览器触发懒加载
                         await new Promise(r => setTimeout(r, 200));
@@ -106,8 +116,16 @@ public class Main {
 
                     // 4. 再回顶部
                     window.scrollTo(0, 0);
+                    // 额外等待确保所有资源加载完成
+                    await new Promise(r => setTimeout(r, 500));
                 }
             """);
+
+                // 获取页面宽度，用于设置PDF宽度
+                Object pageWidthObj = page.evaluate("Math.max(document.body.scrollWidth, document.body.offsetWidth, document.documentElement.clientWidth, document.documentElement.scrollWidth, document.documentElement.offsetWidth)");
+                double pageWidth = Double.parseDouble(pageWidthObj.toString());
+                // 设置PDF宽度为页面宽度，高度为自动
+                String widthStr = pageWidth + "px";
 
                 // 3. 等所有网络空闲（图片加载完）
 //            page.waitForLoadState(LoadState.NETWORKIDLE);
@@ -116,6 +134,7 @@ public class Main {
                 Page.PdfOptions pdfOptions = new Page.PdfOptions()
                         .setPath(Paths.get(outputPath))
                         .setFormat("A4")
+                        .setWidth(widthStr)
                         .setPrintBackground(true)
 //                    .setMargin(new Margin(20, 20, 20, 20))
                         ; // 设置页边距
