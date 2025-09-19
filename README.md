@@ -15,7 +15,6 @@ urltopdf 是一个轻量级的 Java 应用程序，专门用于将 url网页内�
 - 支持打包为 Windows EXE 可执行文件，便于在 Windows 系统上直接运行
 - 支持打包为 macOS DMG 安装包，便于在 macOS 系统上直接运行
 - PDF压缩，减少文件体积
-- 该工具以 微信公众号文章链接 生成 PDF文件 举例
 
 ## 技术栈
 
@@ -72,13 +71,13 @@ DMG 文件会位于 [target](file:///D:/code/urltopdf/urltopdf/target) 目录下
 
 ### 准备数据文件
 
-在桌面创建一个名为 `urltopdf` 的文件夹，并在其中放置 [微信公众号文章.json] 的 JSON 文件，文件格式如下：
+在桌面创建一个名为 `urltopdf` 的文件夹，并在其中放置 [urltopdf.json] 的 JSON 文件，文件格式如下：
 
 ```json
 [
   {
-    "title": "文章标题",
-    "link": "文章链接",
+    "title": "标题",
+    "link": "链接",
     "create_time": 1754832537
   }
 ]
@@ -104,14 +103,14 @@ target/urltopdf.exe
 target/urltopdf.dmg
 ```
 
-程序会读取桌面上的 JSON 文件，依次处理每篇文章链接，并将生成的 PDF 文件保存在桌面上的 `urltopdf` 文件夹中。
+程序会读取桌面上的 JSON 文件，依次处理每个链接，并将生成的 PDF 文件保存在桌面上的 `urltopdf` 文件夹中。
 
 ## 输出文件
 
 生成的 PDF 文件会按照以下命名规则保存：
 
 ```
-{日期时间}_{文章标题}.pdf
+{日期时间}_{标题}.pdf
 ```
 
 ## 注意

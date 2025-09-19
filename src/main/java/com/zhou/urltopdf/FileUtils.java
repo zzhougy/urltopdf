@@ -6,8 +6,8 @@ import java.io.File;
 
 @Slf4j
 public class FileUtils {
-  public static final String JSON_FILE_PATH = "/urltopdf/微信公众号文章.json";
-  public static final String ERROR_JSON_FILE_PATH = "/urltopdf/微信公众号文章_error.json";
+  public static final String JSON_FILE_PATH = "/urltopdf/urltopdf.json";
+  public static final String ERROR_JSON_FILE_PATH = "/urltopdf/urltopdf_error.json";
 
   public static String getDesktopPath() {
     String desktopPath = System.getProperty("user.home") + File.separator + "Desktop";

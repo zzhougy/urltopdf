@@ -67,18 +67,23 @@ public class Main {
             for (Article article : articles) {
 
               try {
-                LocalDateTime dateTime = LocalDateTime.ofInstant(
-                        java.time.Instant.ofEpochSecond(article.getCreate_time()),
-                        ZoneId.systemDefault()
-                );
-                String dateStr = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+                String dateStr = "";
+                try {
+                  LocalDateTime dateTime = LocalDateTime.ofInstant(
+                          java.time.Instant.ofEpochSecond(article.getCreate_time()),
+                          ZoneId.systemDefault()
+                  );
+                  dateStr = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+                } catch (Exception e) {
+                  log.info("时间格式化错误。若无需时间字段，请忽略...");
+                }
                 String title = StringUtils.sanitizeFilename(article.getTitle());
 
 
                 String desktopPath = FileUtils.getDesktopPath();
 
                 String outputPath = desktopPath + File.separator + "urltopdf" + File.separator + dateStr + "_" + title + ".pdf";
-                log.info("开始处理文章：" + outputPath);
+                log.info("开始处理：" + outputPath);
 
                 // 导航到目标URL
                 page.navigate(article.getLink());
