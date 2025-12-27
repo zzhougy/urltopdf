@@ -16,6 +16,12 @@ urltopdf 是一个轻量级的 Java 应用程序，专门用于将 url网页内�
 - 支持打包为 macOS DMG 安装包，便于在 macOS 系统上直接运行
 - PDF压缩，减少文件体积
 
+## 界面截图
+
+![界面截图1](https://github.com/user-attachments/assets/4a82fcb0-be43-4658-8b0f-def68f36e107)
+
+![界面截图2](https://github.com/user-attachments/assets/1e2c8a2b-1809-43d1-8158-8d0b2048174d)
+
 ## 技术栈
 
 - Java 17
